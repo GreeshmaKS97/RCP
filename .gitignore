@@ -1,0 +1,128 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Byte-compiled / optimized files
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# Virtual Environments
+# =========================
+venv/
+env/
+ENV/
+.venv/
+.virtualenv/
+
+# =========================
+# Environment Variables / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+*.env
+
+# =========================
+# FastAPI / Uvicorn
+# =========================
+*.log
+logs/
+uvicorn.log
+gunicorn.log
+
+# =========================
+# Database Files
+# =========================
+*.sqlite3
+*.sqlite
+*.db
+db.sqlite3
+
+# =========================
+# Alembic
+# =========================
+# Keep migration files usually
+# alembic/versions/*.py should normally be committed
+alembic.ini.local
+
+# =========================
+# Testing
+# =========================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+
+# =========================
+# Type Checking / Linters
+# =========================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# =========================
+# Build / Packaging
+# =========================
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# =========================
+# Jupyter Notebook
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# IDE / Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Docker / Local Deployment
+# =========================
+docker-compose.override.yml
+*.pid
+
+# =========================
+# Static / Media Uploads
+# =========================
+media/
+uploads/
+staticfiles/
+
+# =========================
+# Celery / Redis / Queue Files
+# =========================
+celerybeat-schedule
+celerybeat.pid
+
+# =========================
+# Local Config Files
+# =========================
+local_settings.py
+config.local.py
+settings.local.py
