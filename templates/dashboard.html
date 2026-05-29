@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemetry & Analytics Dashboard | Customizable Chatbot</title>
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Inline styles fallback or direct stylesheet -->
+    <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    
+    <!-- MAIN CONTAINER -->
+    <div class="app-container">
+        
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-pulse"></div>
+                <div class="brand-text">
+                    <h1>Customizable Chatbot</h1>
+                    <span class="subtitle">LOGGING & MONITORING PANEL</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div id="service-status" class="status-badge online">
+                    <span class="dot"></span> Telemetry Online
+                </div>
+                <button id="seed-btn" class="btn btn-secondary" onclick="seedDemoData()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Seed Demo Logs
+                </button>
+            </div>
+        </header>
+
+        <!-- GRID METRICS OVERVIEW -->
+        <section class="metrics-grid">
+            <div class="metric-card glass">
+                <div class="metric-icon val-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div class="metric-info">
+                    <span class="label">Total Processed Pipelines</span>
+                    <h3 id="stat-total-requests" class="value">-</h3>
+                    <div class="sub-label">
+                        <span id="stat-uploads">-</span> Uploads &bull; <span id="stat-queries">-</span> Queries
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card glass">
+                <div class="metric-icon success-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                </div>
+                <div class="metric-info">
+                    <span class="label">Pipeline Success Rate</span>
+                    <h3 id="stat-success-rate" class="value">-</h3>
+                    <div class="sub-label">
+                        <span id="stat-errors" class="text-danger">-</span> failures recorded
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card glass">
+                <div class="metric-icon speed-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <div class="metric-info">
+                    <span class="label">Average LLM Latency</span>
+                    <h3 id="stat-avg-latency" class="value">-</h3>
+                    <div class="sub-label">Powered by Llama 3.2 1B</div>
+                </div>
+            </div>
+
+            <div class="metric-card glass">
+                <div class="metric-icon tokens-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
+                </div>
+                <div class="metric-info">
+                    <span class="label">Total Tokens Consumed</span>
+                    <h3 id="stat-total-tokens" class="value">-</h3>
+                    <div class="sub-label">
+                        Avg: <span id="stat-avg-tokens">-</span> / query
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN LAYOUT split: simulator, logs, trace details -->
+        <div class="main-layout">
+            
+            <!-- LEFT COLUMN: Simulator + Trace Feed -->
+            <div class="feed-column">
+                
+                <!-- PLAYGROUND SIMULATOR -->
+                <div class="simulator-card glass">
+                    <div class="card-header">
+                        <h4>Pipeline Testing Playground</h4>
+                        <span class="badge badge-accent">Live Input</span>
+                    </div>
+                    <div class="simulator-tabs">
+                        <button id="tab-query-btn" class="tab-btn active" onclick="switchSimulator('query')">Execute Query (Chat)</button>
+                        <button id="tab-upload-btn" class="tab-btn" onclick="switchSimulator('upload')">Execute Upload (RAG)</button>
+                    </div>
+                    
+                    <!-- Sim: Query -->
+                    <div id="sim-query-pane" class="sim-pane active">
+                        <div class="input-group">
+                            <input type="text" id="sim-query-input" placeholder="Ask something (e.g., 'What models are used in reranking?')" value="Explain chatbot telemetry and validation variables.">
+                            <button class="btn btn-primary" onclick="triggerQuerySim()">
+                                Send Query
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                            </button>
+                        </div>
+                        <p class="sim-tip">Tip: Include "simulate-failure" in the query to trigger a simulated generator timeout error.</p>
+                    </div>
+                    
+                    <!-- Sim: Upload -->
+                    <div id="sim-upload-pane" class="sim-pane">
+                        <div class="upload-grid">
+                            <div class="form-group">
+                                <label for="sim-file-name">Mock Filename</label>
+                                <input type="text" id="sim-file-name" value="user_invoice_reports.pdf">
+                            </div>
+                            <div class="form-group">
+                                <label for="sim-file-content">Mock Raw Bytes</label>
+                                <input type="text" id="sim-file-content" value="Parsed data structure metadata values.">
+                            </div>
+                            <button class="btn btn-primary" onclick="triggerUploadSim()">
+                                Process Document
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            </button>
+                        </div>
+                        <p class="sim-tip">Tip: Name file as "dangerous_script.exe" for validation error or "corrupt.pdf" for parsing error.</p>
+                    </div>
+                </div>
+
+                <!-- SEARCH & FILTER FEED -->
+                <div class="feed-header">
+                    <h3>Recent Telemetry Trails</h3>
+                    <input type="text" id="search-logs" placeholder="Search by query, ID or filename..." onkeyup="filterLogs()">
+                </div>
+                
+                <!-- FEED LOG LIST -->
+                <div id="logs-list" class="logs-feed-list">
+                    <!-- Dynamic rendering here -->
+                    <div class="empty-state">
+                        <p>No telemetry traces available yet. Click "Seed Demo Logs" above or execute one in the playground to begin!</p>
+                    </div>
+                </div>
+                
+                <!-- PAGINATION CONTROLS -->
+                <div class="pagination-container glass">
+                    <button id="prev-page-btn" class="btn btn-secondary btn-sm" onclick="changePage(-1)" disabled>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                        Prev
+                    </button>
+                    <span id="page-info" class="page-info-text">Page 1 of 1</span>
+                    <button id="next-page-btn" class="btn btn-secondary btn-sm" onclick="changePage(1)" disabled>
+                        Next
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- RIGHT COLUMN: TRACE VISUAL WATERFALL & DETAIL INSPECTION -->
+            <div class="details-column">
+                <div id="details-panel" class="details-panel glass empty-selection">
+                    
+                    <div id="details-empty-state" class="panel-empty-state">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/></svg>
+                        <h4>Select a Telemetry Trail</h4>
+                        <p>Click on any execution record from the list to visualize the RAG step-by-step latency waterfall and inspect all parameters.</p>
+                    </div>
+
+                    <!-- REAL DETAIL PANEL (HIDDEN BY DEFAULT) -->
+                    <div id="details-content" class="panel-content hidden">
+                        <div class="panel-header">
+                            <div class="panel-title-row">
+                                <span id="detail-type-badge" class="badge badge-query">QUERY</span>
+                                <h4 id="detail-title">Explain customizable chatbot telemetry...</h4>
+                            </div>
+                            <span id="detail-request-id" class="uuid-label">log_request_id: d2531a89...</span>
+                        </div>
+                        
+                        <!-- META DETAILS BOX -->
+                        <div class="meta-row">
+                            <div class="meta-item">
+                                <span class="meta-lbl">Timestamp</span>
+                                <span id="detail-timestamp" class="meta-val">2026-05-27 15:30:10</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-lbl">User ID</span>
+                                <span id="detail-user-id" class="meta-val">usr_dev_99</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-lbl">Total Latency</span>
+                                <span id="detail-total-latency" class="meta-val text-accent">540 ms</span>
+                            </div>
+                        </div>
+
+                        <!-- WATERFALL CHART -->
+                        <div class="section-title">
+                            <h5>Execution Pipeline Waterfall</h5>
+                            <span class="subtext">Stage-by-stage timings & status map</span>
+                        </div>
+                        <div id="waterfall-container" class="waterfall-chart">
+                            <!-- Dynamic rendering of timeline bars -->
+                        </div>
+
+                        <!-- DIAGNOSTIC WIDGETS -->
+                        <div class="section-title">
+                            <h5>Diagnostic Inspection</h5>
+                        </div>
+
+                        <!-- ERROR DETAIL (ONLY SHOWS ON FAILURES) -->
+                        <div id="error-inspection-box" class="inspection-card danger hidden">
+                            <div class="card-title text-danger">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
+                                Pipeline Exception Captured (log_error)
+                            </div>
+                            <pre id="error-stack-trace" class="terminal"></pre>
+                        </div>
+
+                        <!-- CONDITIONAL PANE: UPLOAD TELEMETRY -->
+                        <div id="inspect-upload-pane" class="hidden">
+                            <div class="inspection-grid">
+                                <div class="inspect-card font-mono">
+                                    <div class="card-title">File Details</div>
+                                    <div class="inspect-field"><span class="f-lbl">doc_filename:</span> <span id="ins-filename" class="f-val"></span></div>
+                                    <div class="inspect-field"><span class="f-lbl">doc_mime_type:</span> <span id="ins-mime" class="f-val"></span></div>
+                                    <div class="inspect-field"><span class="f-lbl">doc_upload_id:</span> <span id="ins-upload-id" class="f-val"></span></div>
+                                    <div class="inspect-field"><span class="f-lbl">val_file_size:</span> <span id="ins-size" class="f-val"></span></div>
+                                </div>
+                                <div class="inspect-card font-mono">
+                                    <div class="card-title">Parser & Classifier</div>
+                                    <div class="inspect-field"><span class="f-lbl">val_is_valid:</span> <span id="ins-val-valid" class="f-val"></span></div>
+                                    <div class="inspect-field"><span class="f-lbl">parse_strategy:</span> <span id="ins-parse-strategy" class="f-val"></span></div>
+                                    <div class="inspect-field"><span class="f-lbl">clf_label:</span> <span id="ins-clf-label" class="f-val"></span></div>
+                                    <div class="inspect-field"><span class="f-lbl">chunk_count:</span> <span id="ins-chunk-count" class="f-val"></span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONDITIONAL PANE: QUERY TELEMETRY -->
+                        <div id="inspect-query-pane" class="hidden">
+                            <!-- Retrieved Chunks -->
+                            <div class="inspect-card">
+                                <div class="card-title">Similarity Search & Reranking Chunks</div>
+                                <div id="ins-retrieved-chunks" class="chunks-list">
+                                    <!-- Dynamic list of retrieved chunks -->
+                                </div>
+                            </div>
+                            
+                            <!-- Prompt & Response -->
+                            <div class="inspect-card font-mono">
+                                <div class="card-title">Generator Interaction (meta-llama/Llama-3.2-1B)</div>
+                                <div class="prompt-header">llm_prompt (concatenated context + user question)</div>
+                                <pre id="ins-prompt" class="prompt-box"></pre>
+                                
+                                <div class="prompt-header">llm_answer (cleaned LLM reply shown to user)</div>
+                                <pre id="ins-answer" class="answer-box"></pre>
+                                
+                                <div class="prompt-footer">
+                                    <span>emb_model_name: <strong>text-embedding-3-small</strong></span> &bull; 
+                                    <span>llm_tokens_used: <strong id="ins-tokens-used">245</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="toast" class="toast hidden">Logs seeded successfully!</div>
+
+    <!-- MAIN DASHBOARD JS SCRIPT -->
+    <script>
+        let allTraces = [];
+        let selectedTraceId = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        const limitPerPage = 10;
+        let searchTimeout = null;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+            // Poll for updates every 4 seconds to simulate real-time stream
+            setInterval(loadDashboardData, 4000);
+        });
+
+        // Load summary stats and list of traces
+        async function loadDashboardData() {
+            try {
+                // Fetch stats
+                const statsRes = await fetch('/api/analytics/summary');
+                const stats = await statsRes.json();
+                
+                // Fetch traces with pagination and search
+                const searchInput = document.getElementById('search-logs');
+                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                
+                const tracesRes = await fetch(`/api/analytics/traces?page=${currentPage}&limit=${limitPerPage}&search=${encodeURIComponent(searchQuery)}`);
+                const responseData = await tracesRes.json();
+                
+                allTraces = responseData.traces || [];
+                totalPages = responseData.total_pages || 1;
+                
+                // Adjust currentPage if it exceeds totalPages
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                    return loadDashboardData();
+                }
+
+                renderSummary(stats);
+                renderTracesList(allTraces);
+                renderPaginationControls();
+                
+                // If a trace is already selected, re-render its details (to capture status changes)
+                if (selectedTraceId) {
+                    const activeTrace = allTraces.find(t => t.log_request_id === selectedTraceId);
+                    if (activeTrace) {
+                        showTraceDetails(activeTrace);
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading telemetry dashboard data:", err);
+            }
+        }
+
+        // Render pagination controls UI
+        function renderPaginationControls() {
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            const pageInfo = document.getElementById('page-info');
+            
+            if (pageInfo) {
+                pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+            }
+            
+            if (prevBtn) {
+                prevBtn.disabled = (currentPage <= 1);
+            }
+            
+            if (nextBtn) {
+                nextBtn.disabled = (currentPage >= totalPages);
+            }
+        }
+
+        // Change page trigger
+        async function changePage(delta) {
+            const targetPage = currentPage + delta;
+            if (targetPage >= 1 && targetPage <= totalPages) {
+                currentPage = targetPage;
+                await loadDashboardData();
+            }
+        }
+
+        // Render counters
+        function renderSummary(stats) {
+            document.getElementById('stat-total-requests').innerText = stats.total_requests || 0;
+            document.getElementById('stat-uploads').innerText = stats.total_uploads || 0;
+            document.getElementById('stat-queries').innerText = stats.total_queries || 0;
+            
+            const rate = stats.success_rate !== undefined ? stats.success_rate : 100.0;
+            document.getElementById('stat-success-rate').innerText = rate + '%';
+            document.getElementById('stat-errors').innerText = stats.error_count || 0;
+            
+            document.getElementById('stat-avg-latency').innerText = (stats.average_latency_ms || 0) + ' ms';
+            
+            document.getElementById('stat-total-tokens').innerText = (stats.total_tokens_used || 0).toLocaleString();
+            document.getElementById('stat-avg-tokens').innerText = Math.round(stats.average_tokens_per_query || 0);
+        }
+
+        // Render log feed
+        function renderTracesList(traces) {
+            const listContainer = document.getElementById('logs-list');
+            if (traces.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <p>No telemetry traces available yet. Click "Seed Demo Logs" above or execute one in the playground to begin!</p>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            traces.forEach(trace => {
+                const isUpload = trace.request_type === 'upload';
+                const icon = isUpload ? 
+                    `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>` : 
+                    `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+                
+                const typeLabel = isUpload ? 'UPLOAD' : 'QUERY';
+                const statusClass = trace.log_error ? 'failed' : 'success';
+                const statusText = trace.log_error ? 'FAILED' : 'SUCCESS';
+                
+                let titleText = '';
+                if (isUpload) {
+                    titleText = trace.doc_filename || 'Unnamed document upload';
+                } else {
+                    titleText = trace.query_text || 'Empty query';
+                }
+                
+                // Crop title
+                if (titleText.length > 50) {
+                    titleText = titleText.substring(0, 48) + '...';
+                }
+
+                // Compute total trace latency
+                let totalLat = 0.0;
+                if (trace.log_pipeline_trace) {
+                    Object.values(trace.log_pipeline_trace).forEach(stage => {
+                        totalLat += (stage.latency_ms || 0);
+                    });
+                }
+                totalLat = Math.round(totalLat);
+
+                const activeClass = selectedTraceId === trace.log_request_id ? 'active' : '';
+                const timeStr = formatTimestamp(trace.timestamp);
+
+                html += `
+                    <div class="log-item glass ${activeClass}" onclick="selectTrace('${trace.log_request_id}')">
+                        <div class="log-item-left">
+                            <div class="item-icon ${isUpload ? 'upload' : 'query'}">${icon}</div>
+                            <div class="item-details">
+                                <div class="item-title">${escapeHtml(titleText)}</div>
+                                <div class="item-meta">
+                                    <span class="badge-mini ${isUpload ? 'badge-mini-upload' : 'badge-mini-query'}">${typeLabel}</span>
+                                    <span class="time">${timeStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="log-item-right">
+                            <div class="item-latency">${totalLat} ms</div>
+                            <span class="status-indicator ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html;
+        }
+
+        // Handle active click
+        function selectTrace(requestId) {
+            selectedTraceId = requestId;
+            
+            // Highlight item
+            const items = document.querySelectorAll('.log-item');
+            items.forEach(item => item.classList.remove('active'));
+            
+            const activeTrace = allTraces.find(t => t.log_request_id === requestId);
+            if (activeTrace) {
+                showTraceDetails(activeTrace);
+            }
+            
+            // Find HTML element and add active class
+            loadDashboardData(); // Refreshes and updates active state
+        }
+
+        // Show details in the right drawer
+        function showTraceDetails(trace) {
+            document.getElementById('details-empty-state').classList.add('hidden');
+            document.getElementById('details-content').classList.remove('hidden');
+
+            const isUpload = trace.request_type === 'upload';
+            const badge = document.getElementById('detail-type-badge');
+            badge.className = `badge ${isUpload ? 'badge-upload' : 'badge-query'}`;
+            badge.innerText = isUpload ? 'DOCUMENT UPLOAD' : 'CHAT QUERY';
+
+            let titleText = isUpload ? (trace.doc_filename || 'Upload') : (trace.query_text || 'Query');
+            document.getElementById('detail-title').innerText = titleText;
+            document.getElementById('detail-title').title = titleText;
+            document.getElementById('detail-request-id').innerText = `log_request_id: ${trace.log_request_id}`;
+            document.getElementById('detail-timestamp').innerText = formatTimestamp(trace.timestamp);
+            document.getElementById('detail-user-id').innerText = trace.auth_user_id || 'usr_anonymous';
+
+            // Calculate overall latency
+            let totalLat = 0.0;
+            if (trace.log_pipeline_trace) {
+                Object.values(trace.log_pipeline_trace).forEach(stage => {
+                    totalLat += (stage.latency_ms || 0);
+                });
+            }
+            totalLat = Math.round(totalLat);
+            document.getElementById('detail-total-latency').innerText = `${totalLat} ms`;
+
+            // 1. WATERFALL TIMELINE RENDER
+            renderWaterfall(trace.log_pipeline_trace);
+
+            // 2. ERROR RENDER
+            const errBox = document.getElementById('error-inspection-box');
+            if (trace.log_error) {
+                errBox.classList.remove('hidden');
+                document.getElementById('error-stack-trace').innerText = trace.log_error;
+            } else {
+                errBox.classList.add('hidden');
+            }
+
+            // 3. DATA INS PANE SWITCH
+            const upPane = document.getElementById('inspect-upload-pane');
+            const qPane = document.getElementById('inspect-query-pane');
+
+            if (isUpload) {
+                upPane.classList.remove('hidden');
+                qPane.classList.add('hidden');
+
+                document.getElementById('ins-filename').innerText = trace.doc_filename || 'n/a';
+                document.getElementById('ins-mime').innerText = trace.doc_mime_type || 'n/a';
+                document.getElementById('ins-upload-id').innerText = trace.doc_upload_id || 'n/a';
+                
+                const size = trace.val_file_size_bytes;
+                document.getElementById('ins-size').innerText = size ? `${(size / 1024).toFixed(2)} KB (${size.toLocaleString()} bytes)` : '0 bytes';
+                
+                const validVal = trace.val_is_valid;
+                const validEl = document.getElementById('ins-val-valid');
+                if (validVal === true) {
+                    validEl.className = 'f-val text-success';
+                    validEl.innerText = 'PASSED (True)';
+                } else if (validVal === false) {
+                    validEl.className = 'f-val text-danger';
+                    validEl.innerText = `FAILED (False) - Errors: ${JSON.stringify(trace.val_errors)}`;
+                } else {
+                    validEl.className = 'f-val';
+                    validEl.innerText = 'n/a';
+                }
+
+                document.getElementById('ins-parse-strategy').innerText = trace.parse_strategy || 'n/a';
+                document.getElementById('ins-clf-label').innerText = trace.clf_label ? `${trace.clf_label} (${Math.round((trace.clf_confidence || 0)*100)}% conf)` : 'n/a';
+                document.getElementById('ins-chunk-count').innerText = trace.chunk_count || '0';
+
+            } else {
+                qPane.classList.remove('hidden');
+                upPane.classList.add('hidden');
+
+                // Render RAG chunks list
+                const chunksContainer = document.getElementById('ins-retrieved-chunks');
+                const chunks = trace.rerank_chunks || [];
+                
+                if (chunks.length === 0) {
+                    chunksContainer.innerHTML = '<div class="no-chunks">No context chunks retrieved.</div>';
+                } else {
+                    let chunksHtml = '';
+                    chunks.forEach((chunk, index) => {
+                        chunksHtml += `
+                            <div class="chunk-item">
+                                <div class="chunk-header">
+                                    <span class="chunk-idx">#${index + 1}</span>
+                                    <span class="chunk-meta">Source: <strong>${escapeHtml(chunk.source)}</strong> &bull; Page ${chunk.page} &bull; Section: ${escapeHtml(chunk.section)}</span>
+                                    <span class="chunk-score">Rerank Score: <strong>${chunk.rerank_score}</strong></span>
+                                </div>
+                                <div class="chunk-text">"${escapeHtml(chunk.text)}"</div>
+                            </div>
+                        `;
+                    });
+                    chunksContainer.innerHTML = chunksHtml;
+                }
+
+                document.getElementById('ins-prompt').innerText = trace.llm_prompt || 'No prompt generated.';
+                document.getElementById('ins-answer').innerText = trace.llm_answer || 'No answer generated.';
+                document.getElementById('ins-tokens-used').innerText = trace.llm_tokens_used || '0';
+            }
+        }
+
+        // Render waterfall HTML bars
+        function renderWaterfall(pipelineTrace) {
+            const container = document.getElementById('waterfall-container');
+            if (!pipelineTrace || Object.keys(pipelineTrace).length === 0) {
+                container.innerHTML = '<div class="no-timeline">No stage timing records available.</div>';
+                return;
+            }
+
+            // Calculate total time span
+            let totalDuration = 0.0;
+            const stages = [];
+            
+            Object.entries(pipelineTrace).forEach(([stageName, info]) => {
+                stages.push({
+                    name: stageName,
+                    latency: info.latency_ms || 0.0,
+                    status: info.status || 'SKIPPED'
+                });
+                totalDuration += (info.latency_ms || 0.0);
+            });
+
+            if (totalDuration === 0) totalDuration = 1.0;
+
+            let html = '';
+            let cumulativeOffset = 0.0;
+
+            stages.forEach(stage => {
+                const widthPercent = Math.max((stage.latency / totalDuration) * 100, 1.5); // Minimum 1.5% for visual visibility
+                const offsetPercent = (cumulativeOffset / totalDuration) * 100;
+                
+                let statusClass = 'success';
+                if (stage.status === 'FAILED') statusClass = 'failed';
+                if (stage.status === 'PROCESSING') statusClass = 'processing';
+
+                // Display naming convention explanation based on prefix
+                let varConvention = '';
+                const prefixMap = {
+                    'auth': 'auth_user_id, auth_token, auth_session',
+                    'upload': 'doc_raw_file, doc_filename, doc_mime_type',
+                    'validation': 'val_is_valid, val_file_size_bytes',
+                    'parser': 'parse_raw_text, parse_pages, parse_strategy',
+                    'structurer': 'struct_json, struct_metadata',
+                    'classifier': 'clf_label, clf_confidence',
+                    'chunker': 'chunk_size, chunk_overlap, chunk_count',
+                    'embedder': 'emb_model_name, emb_vectors',
+                    'chromadb': 'db_collection_name, db_doc_ids',
+                    'retriever': 'query_text, query_emb, query_results',
+                    'reranker': 'rerank_model_name, rerank_chunks',
+                    'generator': 'llm_model_name, llm_latency_ms, llm_answer'
+                };
+                varConvention = prefixMap[stage.name] || '';
+
+                html += `
+                    <div class="waterfall-row">
+                        <div class="waterfall-stage-label">
+                            <span class="stage-tag">${stage.name}</span>
+                            <span class="stage-variables" title="${varConvention}">${varConvention}</span>
+                        </div>
+                        <div class="waterfall-bar-track">
+                            <div class="waterfall-bar ${statusClass}" style="left: ${offsetPercent}%; width: ${widthPercent}%;">
+                                <span class="bar-latency">${stage.latency} ms</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                cumulativeOffset += stage.latency;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Tab selection for playground
+        function switchSimulator(type) {
+            document.getElementById('tab-query-btn').classList.remove('active');
+            document.getElementById('tab-upload-btn').classList.remove('active');
+            document.getElementById('sim-query-pane').classList.remove('active');
+            document.getElementById('sim-upload-pane').classList.remove('active');
+
+            if (type === 'query') {
+                document.getElementById('tab-query-btn').classList.add('active');
+                document.getElementById('sim-query-pane').classList.add('active');
+            } else {
+                document.getElementById('tab-upload-btn').classList.add('active');
+                document.getElementById('sim-upload-pane').classList.add('active');
+            }
+        }
+
+        // Manual Simulator execution trigger (Query)
+        async function triggerQuerySim() {
+            const queryVal = document.getElementById('sim-query-input').value;
+            if (!queryVal.trim()) return;
+
+            try {
+                showToast("Executing chatbot query pipeline...", "info");
+                const res = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query_text: queryVal, user_id: 'usr_playground_user' })
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    showToast("Query completed and logged!", "success");
+                } else {
+                    showToast("Pipeline returned with execution errors.", "error");
+                }
+                
+                selectedTraceId = result.request_id;
+                currentPage = 1; // Reset to page 1 to show the new trace
+                await loadDashboardData();
+            } catch (err) {
+                showToast("Failed to communicate with pipeline server.", "error");
+            }
+        }
+
+        // Manual Simulator execution trigger (Upload)
+        async function triggerUploadSim() {
+            const fn = document.getElementById('sim-file-name').value;
+            const content = document.getElementById('sim-file-content').value;
+            if (!fn.trim()) return;
+
+            try {
+                showToast("Executing preprocess upload pipeline...", "info");
+                
+                // Create a simulated multipart form upload
+                const formData = new FormData();
+                const blob = new Blob([content], { type: 'text/plain' });
+                formData.append('file', blob, fn);
+
+                const res = await fetch('/api/upload?user_id=usr_playground_user', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    showToast("Preprocess completed and indexed!", "success");
+                } else {
+                    showToast("Pipeline failed. Details logged to trail.", "error");
+                }
+                
+                selectedTraceId = result.request_id;
+                currentPage = 1; // Reset to page 1 to show the new trace
+                await loadDashboardData();
+            } catch (err) {
+                showToast("Failed to communicate with pipeline server.", "error");
+            }
+        }
+
+        // Seed logs button helper
+        async function seedDemoData() {
+            const btn = document.getElementById('seed-btn');
+            btn.disabled = true;
+            showToast("Generating interesting trace scenarios...", "info");
+
+            try {
+                const res = await fetch('/api/demo/seed', { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message, "success");
+                currentPage = 1; // Reset to page 1 to show seeded traces
+                await loadDashboardData();
+            } catch (err) {
+                showToast("Failed to seed database.", "error");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Search/Filter server-side helper with 300ms debounce
+        function filterLogs() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1; // Reset to page 1 for new search results
+                loadDashboardData();
+            }, 300);
+        }
+
+        // Toast visual notifier
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.className = `toast ${type}`;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
+
+        // Utility formatting
+        function formatTimestamp(isoStr) {
+            if (!isoStr) return '';
+            try {
+                const date = new Date(isoStr);
+                return date.toLocaleString();
+            } catch (e) {
+                return isoStr;
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
