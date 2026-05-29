@@ -1,3 +1,4 @@
+
 import time
 import uuid
 from typing import Any, Dict, List, Optional
@@ -6,6 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 
 security_scheme = HTTPBearer()
+
 
 app = FastAPI(
     title="Customizable Chatbot - Chat Endpoints Module",
@@ -295,10 +297,4 @@ async def chat_endpoint(
         ]
     )
 
-@app.get("/")
-async def root():
-    return {
-        "status": "online",
-        "service": "Customizable Chatbot Chat Endpoints API",
-        "endpoints": ["/api/v1/chat"]
-    }
+
